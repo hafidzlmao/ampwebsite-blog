@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-blue: #4169E1;
+  --text-primary: #1A1A1A;
+  --text-secondary: #666666;
+  --background-light: #FFFFFF;
+  --background-gray: #F5F5F5;
+}
+
+@layer base {
+  body {
+    @apply antialiased bg-[#FAFAFA];
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight text-[#1A1A1A];
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .btn-primary {
+    @apply bg-[#4169E1] text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-[#4169E1] border border-[#4169E1] px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold text-center mb-12 text-[#1A1A1A];
+  }
+}
+
+.prose {
+  @apply max-w-none;
+}
+
+.prose a {
+  @apply text-[#4169E1] no-underline hover:underline;
+}

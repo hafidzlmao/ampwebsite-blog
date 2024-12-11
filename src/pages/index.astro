@@ -1,0 +1,48 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import BlogCard from '../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+import { getFeaturedPosts } from '../utils/blogHelpers';
+
+const posts = await getCollection('blog');
+const featuredPosts = posts ? getFeaturedPosts(posts) : [];
+---
+
+<BlogLayout 
+  title="Blog Konstruksi Modern"
+  description="Informasi terkini seputar material konstruksi, tips pembangunan, dan inovasi dalam industri konstruksi modern."
+>
+  <section class="text-center mb-16">
+    <h1 class="text-4xl font-bold text-[#4169E1] mb-4">Blog Konstruksi Modern</h1>
+    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+      Temukan informasi terkini seputar material konstruksi dan tips pembangunan untuk proyek Anda
+    </p>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="section-title">Artikel Terbaru</h2>
+    {featuredPosts.length > 0 ? (
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {featuredPosts.map((post) => (
+          <BlogCard post={post} />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-12">
+        <p class="text-gray-600">Belum ada artikel tersedia. Silakan kembali lagi nanti!</p>
+      </div>
+    )}
+  </section>
+
+  <section class="bg-gray-50 -mx-4 px-4 py-16 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="section-title">Butuh Konsultasi?</h2>
+      <p class="text-gray-600 mb-8">
+        Tim ahli kami siap membantu Anda menemukan solusi terbaik untuk proyek konstruksi Anda
+      </p>
+      <a href="/kontak" class="btn-primary inline-block">
+        Hubungi Kami
+      </a>
+    </div>
+  </section>
+</BlogLayout>
