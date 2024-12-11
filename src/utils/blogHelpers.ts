@@ -21,7 +21,7 @@ export function getRelatedPosts(
     .filter(post => 
       post.id !== currentPost.id && 
       (post.data.category === currentPost.data.category ||
-       post.data.tags.some(tag => currentPost.data.tags.includes(tag)))
+      post.data.tags.some(tag => currentPost.data.tags.includes(tag)))
     )
     .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
     .slice(0, 3);
