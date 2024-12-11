@@ -6,6 +6,13 @@ import { getFeaturedPosts } from '../utils/blogHelpers';
 
 const posts = await getCollection('blog');
 const featuredPosts = posts ? getFeaturedPosts(posts) : [];
+
+// Pagination settings
+const itemsPerPage = 5; // Number of posts per page
+const totalPages = Math.ceil(posts.length / itemsPerPage);
+const currentPage = Number(Astro.request.url.split('page=')[1]) || 1; // Get current page from URL
+const startIndex = (currentPage - 1) * itemsPerPage;
+const paginatedPosts = posts.slice(startIndex, startIndex + itemsPerPage);
 ---
 
 <BlogLayout 
@@ -19,30 +26,21 @@ const featuredPosts = posts ? getFeaturedPosts(posts) : [];
     </p>
   </section>
 
-  <section class="mb-16">
-    <h2 class="section-title">Artikel Terbaru</h2>
-    {featuredPosts.length > 0 ? (
-      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {featuredPosts.map((post) => (
-          <BlogCard post={post} />
-        ))}
-      </div>
-    ) : (
-      <div class="text-center py-12">
-        <p class="text-gray-600">Belum ada artikel tersedia. Silakan kembali lagi nanti!</p>
-      </div>
-    )}
-  </section>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {paginatedPosts.map(post => (
+      <BlogCard post={post} />
+    ))}
+  </div>
 
-  <section class="bg-gray-50 -mx-4 px-4 py-16 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-    <div class="max-w-3xl mx-auto text-center">
-      <h2 class="section-title">Butuh Konsultasi?</h2>
-      <p class="text-gray-600 mb-8">
-        Tim ahli kami siap membantu Anda menemukan solusi terbaik untuk proyek konstruksi Anda
-      </p>
-      <a href="/kontak" class="btn-primary inline-block">
-        Hubungi Kami
+  <!-- Pagination -->
+  <div class="flex justify-center mt-8">
+    {Array.from({ length: totalPages }, (_, index) => (
+      <a 
+        href={`/?page=${index + 1}`} 
+        class={`px-4 py-2 mx-1 rounded ${currentPage === index + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+      >
+        {index + 1}
       </a>
-    </div>
-  </section>
+    ))}
+  </div>
 </BlogLayout>

@@ -3,6 +3,7 @@ import BlogLayout from '../../layouts/BlogLayout.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { formatDate } from '../../utils/formatDate';
 import { getRelatedPosts, getCategoryColor } from '../../utils/blogHelpers';
+import { Image } from 'astro:assets';
 
 // Generate static paths for all blog posts
 export async function getStaticPaths() {
@@ -29,6 +30,12 @@ const relatedPosts = getRelatedPosts(post, allPosts);
   title={post.data.title}
   description={post.data.description}
   image={post.data.image}
+  article={true}
+  publishDate={post.data.pubDate}
+  author={{
+    name: post.data.author.name,
+    image: post.data.author.image
+  }}
 >
   <article class="max-w-3xl mx-auto">
     <!-- Header -->
@@ -59,10 +66,12 @@ const relatedPosts = getRelatedPosts(post, allPosts);
 
     <!-- Featured Image -->
     {post.data.image && (
-      <img
+      <Image
         src={post.data.image}
         alt={post.data.imageAlt || post.data.title}
         class="w-full h-[400px] object-cover rounded-lg mb-8"
+        inferSize={true}
+        loading="lazy"
       />
     )}
 
