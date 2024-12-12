@@ -2,10 +2,10 @@
 import BlogLayout from '../../layouts/BlogLayout.astro';
 import ErrorBoundary from '../../components/common/ErrorBoundary.astro';
 import PostHeader from '../../components/blog/PostHeader.astro';
+import PostImage from '../../components/blog/PostImage.astro';
 import ShareButtons from '../../components/share/ShareButtons.astro';
 import TableOfContents from '../../components/toc/TableOfContents.astro';
 import RelatedPosts from '../../components/blog/RelatedPosts.astro';
-import { Image } from 'astro:assets';
 import { getPostBySlug, getCachedCollection } from '../../lib/content';
 import { getRelatedPosts } from '../../utils/blogHelpers';
 import { handleError } from '../../lib/errors';
@@ -59,12 +59,10 @@ const url = new URL(Astro.url.pathname, Astro.site).toString();
       </div>
 
       {post.data.image && (
-        <Image
+        <PostImage
           src={post.data.image}
           alt={post.data.imageAlt || post.data.title}
-          class="w-full h-[400px] object-cover rounded-lg mb-8"
-          inferSize={true}
-          loading="lazy"
+          className="w-full h-[400px] rounded-lg mb-8"
         />
       )}
 

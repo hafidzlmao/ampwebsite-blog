@@ -1,0 +1,33 @@
+---
+import { Image } from 'astro:assets';
+import { getImagePath, isRemoteImage } from '../../lib/images';
+
+interface Props {
+  src: string;
+  alt: string;
+  className?: string;
+}
+
+const { src, alt, className = '' } = Astro.props;
+
+const processedSrc = getImagePath(src);
+const isRemote = isRemoteImage(processedSrc);
+---
+
+{isRemote ? (
+  <img
+    src={processedSrc}
+    alt={alt}
+    class={className}
+    loading="lazy"
+  />
+) : (
+  <div class={className}>
+    <img 
+      src={processedSrc}
+      alt={alt}
+      class="w-full h-full object-cover"
+      loading="lazy"
+    />
+  </div>
+)}
