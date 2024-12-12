@@ -1,29 +1,38 @@
 ---
 import BlogLayout from '../../layouts/BlogLayout.astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
-import { formatDate } from '../../utils/formatDate';
-import { getRelatedPosts, getCategoryColor } from '../../utils/blogHelpers';
+import ErrorBoundary from '../../components/common/ErrorBoundary.astro';
+import PostHeader from '../../components/blog/PostHeader.astro';
+import ShareButtons from '../../components/share/ShareButtons.astro';
+import TableOfContents from '../../components/toc/TableOfContents.astro';
+import RelatedPosts from '../../components/blog/RelatedPosts.astro';
 import { Image } from 'astro:assets';
+import { getPostBySlug, getCachedCollection } from '../../lib/content';
+import { getRelatedPosts } from '../../utils/blogHelpers';
+import { handleError } from '../../lib/errors';
 
-// Generate static paths for all blog posts
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map(post => ({
-    params: { slug: post.slug },
-    props: { post }
-  }));
+  try {
+    const posts = await getCachedCollection('blog');
+    return posts.map(post => ({
+      params: { slug: post.slug },
+      props: { post }
+    }));
+  } catch (error) {
+    throw handleError(error);
+  }
 }
 
-interface Props {
-  post: CollectionEntry<'blog'>;
+const { slug } = Astro.params;
+const post = await getPostBySlug(slug);
+
+if (!post) {
+  return new Response('Post not found', { status: 404 });
 }
 
-const { post } = Astro.props;
-const { Content } = await post.render();
-
-// Get related posts
-const allPosts = await getCollection('blog');
+const { Content, headings } = await post.render();
+const allPosts = await getCachedCollection('blog');
 const relatedPosts = getRelatedPosts(post, allPosts);
+const url = new URL(Astro.url.pathname, Astro.site).toString();
 ---
 
 <BlogLayout
@@ -37,77 +46,44 @@ const relatedPosts = getRelatedPosts(post, allPosts);
     image: post.data.author.image
   }}
 >
-  <article class="max-w-3xl mx-auto">
-    <!-- Header -->
-    <header class="mb-8">
-      <span class={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${getCategoryColor(post.data.category)}`}>
-        {post.data.category}
-      </span>
-      <h1 class="text-4xl font-bold mb-4">{post.data.title}</h1>
-      <div class="flex items-center gap-4 text-gray-600">
-        <div class="flex items-center gap-2">
-          {post.data.author.image && (
-            <img
-              src={post.data.author.image}
-              alt={post.data.author.name}
-              class="w-8 h-8 rounded-full"
-            />
-          )}
-          <span>{post.data.author.name}</span>
-        </div>
-        <span>•</span>
-        <time datetime={post.data.pubDate.toISOString()}>
-          {formatDate(post.data.pubDate)}
-        </time>
-        <span>•</span>
-        <span>{post.data.readingTime} menit baca</span>
+  <ErrorBoundary>
+    <article class="max-w-3xl mx-auto">
+      <PostHeader post={post} />
+      
+      <div class="mb-8">
+        <ShareButtons url={url} title={post.data.title} />
       </div>
-    </header>
 
-    <!-- Featured Image -->
-    {post.data.image && (
-      <Image
-        src={post.data.image}
-        alt={post.data.imageAlt || post.data.title}
-        class="w-full h-[400px] object-cover rounded-lg mb-8"
-        inferSize={true}
-        loading="lazy"
-      />
-    )}
-
-    <!-- Content -->
-    <div class="prose prose-lg mx-auto">
-      <Content />
-    </div>
-
-    <!-- Tags -->
-    <div class="mt-8 flex flex-wrap gap-2">
-      {post.data.tags.map(tag => (
-        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
-          {tag}
-        </span>
-      ))}
-    </div>
-
-    <!-- Related Posts -->
-    {relatedPosts.length > 0 && (
-      <div class="mt-16">
-        <h2 class="text-2xl font-bold mb-6">Artikel Terkait</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {relatedPosts.map(relatedPost => (
-            <a href={`/blog/${relatedPost.slug}`} class="group">
-              <div class="bg-gray-100 rounded-lg p-4">
-                <h3 class="font-semibold group-hover:text-[#4169E1] transition-colors">
-                  {relatedPost.data.title}
-                </h3>
-                <p class="text-sm text-gray-600 mt-2">
-                  {relatedPost.data.description}
-                </p>
-              </div>
-            </a>
-          ))}
-        </div>
+      <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+        <TableOfContents headings={headings} />
       </div>
-    )}
-  </article>
+
+      {post.data.image && (
+        <Image
+          src={post.data.image}
+          alt={post.data.imageAlt || post.data.title}
+          class="w-full h-[400px] object-cover rounded-lg mb-8"
+          inferSize={true}
+          loading="lazy"
+        />
+      )}
+
+      <div class="prose prose-lg mx-auto">
+        <Content />
+      </div>
+
+      <div class="mt-8 flex flex-wrap gap-2">
+        {post.data.tags.map(tag => (
+          <a
+            href={`/tag/${tag}`}
+            class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm hover:bg-gray-200 transition-colors"
+          >
+            {tag}
+          </a>
+        ))}
+      </div>
+
+      <RelatedPosts posts={relatedPosts} />
+    </article>
+  </ErrorBoundary>
 </BlogLayout>

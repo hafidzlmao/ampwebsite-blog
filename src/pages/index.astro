@@ -1,6 +1,9 @@
 ---
 import BlogLayout from '../layouts/BlogLayout.astro';
 import BlogCard from '../components/BlogCard.astro';
+import SearchBar from '../components/search/SearchBar.astro';
+import CategoryFilter from '../components/filters/CategoryFilter.astro';
+import TagFilter from '../components/filters/TagFilter.astro';
 import { getCollection } from 'astro:content';
 import { getFeaturedPosts } from '../utils/blogHelpers';
 
@@ -8,9 +11,9 @@ const posts = await getCollection('blog');
 const featuredPosts = posts ? getFeaturedPosts(posts) : [];
 
 // Pagination settings
-const itemsPerPage = 5; // Number of posts per page
+const itemsPerPage = 5;
 const totalPages = Math.ceil(posts.length / itemsPerPage);
-const currentPage = Number(Astro.request.url.split('page=')[1]) || 1; // Get current page from URL
+const currentPage = Number(Astro.url.searchParams.get('page')) || 1;
 const startIndex = (currentPage - 1) * itemsPerPage;
 const paginatedPosts = posts.slice(startIndex, startIndex + itemsPerPage);
 ---
@@ -21,26 +24,38 @@ const paginatedPosts = posts.slice(startIndex, startIndex + itemsPerPage);
 >
   <section class="text-center mb-16">
     <h1 class="text-4xl font-bold text-[#4169E1] mb-4">Blog Konstruksi Modern</h1>
-    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+    <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
       Temukan informasi terkini seputar material konstruksi dan tips pembangunan untuk proyek Anda
     </p>
+    <SearchBar />
   </section>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {paginatedPosts.map(post => (
-      <BlogCard post={post} />
-    ))}
-  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <!-- Sidebar with filters -->
+    <div class="lg:col-span-1 space-y-6">
+      <CategoryFilter />
+      <TagFilter />
+    </div>
 
-  <!-- Pagination -->
-  <div class="flex justify-center mt-8">
-    {Array.from({ length: totalPages }, (_, index) => (
-      <a 
-        href={`/?page=${index + 1}`} 
-        class={`px-4 py-2 mx-1 rounded ${currentPage === index + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-      >
-        {index + 1}
-      </a>
-    ))}
+    <!-- Main content -->
+    <div class="lg:col-span-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {paginatedPosts.map(post => (
+          <BlogCard post={post} />
+        ))}
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center mt-8">
+        {Array.from({ length: totalPages }, (_, index) => (
+          <a 
+            href={`/?page=${index + 1}`} 
+            class={`px-4 py-2 mx-1 rounded ${currentPage === index + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+          >
+            {index + 1}
+          </a>
+        ))}
+      </div>
+    </div>
   </div>
 </BlogLayout>

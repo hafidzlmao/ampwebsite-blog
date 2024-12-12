@@ -1,0 +1,53 @@
+---
+interface Props {
+  headings: {
+    depth: number;
+    slug: string;
+    text: string;
+  }[];
+}
+
+const { headings } = Astro.props;
+---
+{headings.length > 0 && (
+  <nav class="toc">
+    <h2 class="text-lg font-semibold mb-4">Table of Contents</h2>
+    <ul class="space-y-2">
+      {headings.map(heading => (
+        <li class={`pl-${(heading.depth - 1) * 4}`}>
+          <a
+            href={`#${heading.slug}`}
+            class="text-gray-600 hover:text-blue-500 transition-colors"
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc a');
+  const sections = document.querySelectorAll('h2, h3, h4, h5, h6');
+  
+  const observerOptions = {
+    rootMargin: '0px 0px -40% 0px',
+    threshold: 1.0
+  };
+  
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const id = entry.target.getAttribute('id');
+      const tocLink = document.querySelector(`.toc a[href="#${id}"]`);
+      
+      if (entry.isIntersecting) {
+        tocLink?.classList.add('text-blue-500');
+      } else {
+        tocLink?.classList.remove('text-blue-500');
+      }
+    });
+  }, observerOptions);
+  
+  sections.forEach(section => observer.observe(section));
+</script>

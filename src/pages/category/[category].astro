@@ -1,0 +1,29 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const categories = ['material', 'tips', 'proyek', 'teknologi'];
+  return categories.map(category => ({
+    params: { category },
+    props: { category }
+  }));
+}
+
+const { category } = Astro.props;
+const posts = await getCollection('blog');
+const categoryPosts = posts.filter(post => post.data.category === category);
+---
+
+<BlogLayout
+  title={`${category.charAt(0).toUpperCase() + category.slice(1)} Posts`}
+  description={`All posts in the ${category} category`}
+>
+  <h1 class="text-3xl font-bold mb-8">Posts in {category}</h1>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {categoryPosts.map(post => (
+      <BlogCard post={post} />
+    ))}
+  </div>
+</BlogLayout>

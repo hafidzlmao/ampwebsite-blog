@@ -1,0 +1,26 @@
+---
+interface Props {
+  results: Array<{
+    title: string;
+    description: string;
+    slug: string;
+  }>;
+}
+
+const { results } = Astro.props;
+---
+
+<div class="absolute z-10 w-full mt-2 bg-white rounded-lg shadow-lg">
+  {results.length > 0 ? (
+    results.map(result => (
+      <a href={`/blog/${result.slug}`} class="block p-4 hover:bg-gray-50">
+        <h3 class="font-semibold">{result.title}</h3>
+        <p class="text-sm text-gray-600">{result.description}</p>
+      </a>
+    ))
+  ) : (
+    <div class="p-4 text-gray-600">
+      No results found
+    </div>
+  )}
+</div>

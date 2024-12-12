@@ -1,0 +1,50 @@
+---
+import SearchResults from './SearchResults.astro';
+import { useSearch } from '../../lib/hooks/useSearch';
+---
+
+<div class="relative">
+  <input
+    type="text"
+    id="search-input"
+    placeholder="Search posts..."
+    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  />
+  <div id="search-results" class="hidden">
+    <!-- Results will be rendered here -->
+  </div>
+</div>
+
+<script>
+  import { useSearch } from '../../lib/hooks/useSearch';
+  
+  const searchInput = document.getElementById('search-input');
+  const searchResults = document.getElementById('search-results');
+  const { debounceSearch } = useSearch();
+  
+  function updateResults(results: any[]) {
+    if (!searchResults) return;
+    
+    searchResults.classList.toggle('hidden', results.length === 0);
+    searchResults.innerHTML = results
+      .map(result => `
+        <a href="/blog/${result.slug}" class="block p-4 hover:bg-gray-50">
+          <h3 class="font-semibold">${result.title}</h3>
+          <p class="text-sm text-gray-600">${result.description}</p>
+        </a>
+      `)
+      .join('');
+  }
+  
+  searchInput?.addEventListener('input', (e) => {
+    const query = (e.target as HTMLInputElement).value;
+    debounceSearch(updateResults, query);
+  });
+  
+  // Close search results when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchInput?.contains(e.target as Node)) {
+      searchResults?.classList.add('hidden');
+    }
+  });
+</script>

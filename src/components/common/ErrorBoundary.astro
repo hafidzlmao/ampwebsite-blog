@@ -1,0 +1,45 @@
+---
+interface Props {
+  fallback?: string;
+}
+
+const { fallback = 'Something went wrong. Please try again later.' } = Astro.props;
+---
+
+<div class="error-boundary">
+  <slot>
+    <div class="text-center py-8">
+      <p class="text-red-600 mb-4">{fallback}</p>
+      <button
+        onclick="window.location.reload()"
+        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Retry
+      </button>
+    </div>
+  </slot>
+</div>
+
+<script>
+  class ErrorBoundary extends HTMLElement {
+    constructor() {
+      super();
+      this.handleError = this.handleError.bind(this);
+    }
+
+    handleError(error: Error) {
+      console.error('Error caught by boundary:', error);
+      this.innerHTML = this.getAttribute('fallback') || 'Something went wrong';
+    }
+
+    connectedCallback() {
+      window.addEventListener('error', this.handleError);
+    }
+
+    disconnectedCallback() {
+      window.removeEventListener('error', this.handleError);
+    }
+  }
+
+  customElements.define('error-boundary', ErrorBoundary);
+</script>
