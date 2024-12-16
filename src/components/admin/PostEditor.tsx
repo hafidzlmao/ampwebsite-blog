@@ -3,6 +3,8 @@ import { Editor } from '@tinymce/tinymce-react';
 import type { Post } from '../../types/blog';
 import { CategorySelect } from './form/CategorySelect';
 import { TagInput } from './form/TagInput';
+import { useEditor } from '../../hooks/useEditor';
+import { createPost, updatePost } from '../../services/blogService';
 
 interface PostEditorProps {
   post: Post | null;
@@ -18,6 +20,7 @@ export default function PostEditor({ post, onSave, onCancel }: PostEditorProps) 
   const [tags, setTags] = useState('');
   const [featured, setFeatured] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { editorRef, handleEditorInit } = useEditor();
 
   // Update form when post prop changes
   useEffect(() => {
@@ -46,23 +49,27 @@ export default function PostEditor({ post, onSave, onCancel }: PostEditorProps) 
     try {
       setSaving(true);
       const postData = {
-        id: post?.id,
         title,
         description,
         content,
         category,
         tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
         featured,
-        pubDate: post?.pubDate || new Date(),
-        updatedDate: new Date(),
+        pub_date: post?.pubDate || new Date(),
+        updated_date: new Date(),
         author: post?.author || {
           name: 'Admin',
           title: 'Administrator'
         },
-        readingTime: Math.ceil(content.split(' ').length / 200)
+        reading_time: Math.ceil(content.split(' ').length / 200)
       };
 
-      console.log('Saving post:', postData);
+      if (post?.id) {
+        await updatePost(post.id, postData);
+      } else {
+        await createPost(postData);
+      }
+      
       onSave(postData);
     } catch (error) {
       console.error('Error saving post:', error);
@@ -71,6 +78,10 @@ export default function PostEditor({ post, onSave, onCancel }: PostEditorProps) 
       setSaving(false);
     }
   }, [post, title, description, content, category, tags, featured, saving, onSave]);
+
+  const handleEditorChange = (content: string, editor: any) => {
+    setContent(content);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -100,6 +111,8 @@ export default function PostEditor({ post, onSave, onCancel }: PostEditorProps) 
         <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
         <Editor
           apiKey={import.meta.env.PUBLIC_TINYMCE_API_KEY}
+          onInit={handleEditorInit}
+          initialValue={content}
           value={content}
           init={{
             height: 500,
@@ -109,10 +122,10 @@ export default function PostEditor({ post, onSave, onCancel }: PostEditorProps) 
               'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
               'insertdatetime', 'media', 'table', 'help', 'wordcount'
             ],
-            toolbar: 'undo redo | formatselect | ' +
-              'bold italic backcolor | alignleft aligncenter ' +
+            toolbar: 'undo redo | blocks | ' +
+              'bold italic forecolor | alignleft aligncenter ' +
               'alignright alignjustify | bullist numlist outdent indent | ' +
-              'removeformat | image media | help',
+              'removeformat | image media link | help',
             content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 16px; line-height: 1.6; }',
             branding: false,
             promotion: false,
@@ -139,9 +152,18 @@ export default function PostEditor({ post, onSave, onCancel }: PostEditorProps) 
                 console.error('Upload failed:', error);
                 throw error;
               }
-            }
+            },
+            directionality: 'ltr',
+            content_style: `
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; 
+                font-size: 16px; 
+                line-height: 1.6;
+                direction: ltr;
+              }
+            `,
           }}
-          onEditorChange={setContent}
+          onEditorChange={handleEditorChange}
         />
       </div>
 

@@ -1,18 +1,26 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import type { Editor as TinyMCEEditor } from 'tinymce';
 
 export function useEditor() {
   const editorRef = useRef<TinyMCEEditor | null>(null);
 
   const handleEditorInit = (_evt: any, editor: TinyMCEEditor) => {
+    console.log('Editor initialized:', editor);
     editorRef.current = editor;
-    // Initialize with the current content
     if (editor.getContent()) {
       editor.setContent(editor.getContent());
     }
-    // Ensure the editor is editable
-    editor.setMode('design');
   };
+
+  useEffect(() => {
+    // Cleanup function
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+    };
+  }, []);
 
   return {
     editorRef,
