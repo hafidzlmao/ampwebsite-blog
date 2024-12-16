@@ -6,9 +6,12 @@ export function useEditor() {
 
   const handleEditorInit = (_evt: any, editor: TinyMCEEditor) => {
     editorRef.current = editor;
-    // Fix: Use the correct method to enable editing
-    editor.setContent(editor.getContent());
-    editor.getBody().contentEditable = 'true';
+    // Initialize with the current content
+    if (editor.getContent()) {
+      editor.setContent(editor.getContent());
+    }
+    // Ensure the editor is editable
+    editor.setMode('design');
   };
 
   return {

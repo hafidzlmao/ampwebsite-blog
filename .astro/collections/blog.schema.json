@@ -58,7 +58,7 @@
               "type": "string"
             },
             "image": {
-              "type": "string"
+              "$ref": "#/definitions/blog/properties/image"
             }
           },
           "required": [
