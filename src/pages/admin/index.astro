@@ -1,0 +1,90 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import PostList from '../../components/admin/PostList';
+import PostEditor from '../../components/admin/PostEditor';
+import { getCollection } from 'astro:content';
+import { createPost, updatePost, deletePost } from '../../lib/blog';
+
+const posts = await getCollection('blog');
+
+const mappedPosts = posts.map(post => ({
+  id: post.id,
+  title: post.data.title,
+  content: '',  // Content will be loaded when editing
+  category: post.data.category,
+  tags: post.data.tags,
+  pubDate: post.data.pubDate,
+  featured: post.data.featured || false,
+  deleted: false,
+  author: post.data.author
+}));
+---
+
+<BlogLayout title="Admin Dashboard" description="Manage your blog posts">
+  <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Blog Posts</h1>
+        <button
+          id="newPost"
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+        >
+          New Post
+        </button>
+      </div>
+
+      <div id="editor" class="hidden mb-8">
+        <PostEditor 
+          client:load
+          onSave={async (post) => {
+            try {
+              await createPost(post);
+              window.location.reload();
+            } catch (error) {
+              console.error('Failed to create post:', error);
+              alert('Failed to create post. Please try again.');
+            }
+          }}
+          onCancel={() => {
+            const editor = document.getElementById('editor');
+            editor?.classList.add('hidden');
+          }}
+        />
+      </div>
+
+      <PostList
+        client:load
+        posts={mappedPosts}
+        onEdit={async (post) => {
+          try {
+            await updatePost(post.id, post);
+            window.location.reload();
+          } catch (error) {
+            console.error('Failed to update post:', error);
+            alert('Failed to update post. Please try again.');
+          }
+        }}
+        onDelete={async (post) => {
+          if (confirm('Are you sure you want to delete this post?')) {
+            try {
+              await deletePost(post.id);
+              window.location.reload();
+            } catch (error) {
+              console.error('Failed to delete post:', error);
+              alert('Failed to delete post. Please try again.');
+            }
+          }
+        }}
+      />
+    </div>
+  </div>
+</BlogLayout>
+
+<script>
+  const newPostButton = document.getElementById('newPost');
+  const editorDiv = document.getElementById('editor');
+
+  newPostButton?.addEventListener('click', () => {
+    editorDiv?.classList.toggle('hidden');
+  });
+</script>
