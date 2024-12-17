@@ -1,0 +1,134 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { getSession } from '../lib/auth/service';
+
+// Redirect if already logged in
+const session = await getSession();
+if (session) {
+  return Astro.redirect('/admin');
+}
+---
+
+<BlogLayout title="Sign Up" description="Create an admin account">
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+      <div>
+        <h2 class="text-center text-3xl font-bold">Create Admin Account</h2>
+      </div>
+      <form id="signupForm" class="mt-8 space-y-6">
+        <div class="rounded-md shadow-sm space-y-4">
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              required
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Enter username"
+            />
+            <p id="username-error" class="mt-1 text-sm text-red-600 hidden"></p>
+          </div>
+          
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Enter email"
+            />
+            <p id="email-error" class="mt-1 text-sm text-red-600 hidden"></p>
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Enter password"
+            />
+            <p id="password-error" class="mt-1 text-sm text-red-600 hidden"></p>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Sign up
+          </button>
+        </div>
+
+        <div id="error-message" class="text-red-600 text-center hidden"></div>
+        
+        <div class="text-center">
+          <a href="/login" class="text-sm text-blue-600 hover:text-blue-500">
+            Already have an account? Sign in
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</BlogLayout>
+
+<script>
+  import { signUp } from '../lib/auth/service';
+  import type { SignUpValidationErrors } from '../lib/auth/validation';
+
+  const form = document.getElementById('signupForm');
+  const errorMessage = document.getElementById('error-message');
+  const errorFields = {
+    username: document.getElementById('username-error'),
+    email: document.getElementById('email-error'),
+    password: document.getElementById('password-error'),
+  };
+
+  function clearErrors() {
+    errorMessage?.classList.add('hidden');
+    Object.values(errorFields).forEach(field => {
+      field?.classList.add('hidden');
+      if (field) field.textContent = '';
+    });
+  }
+
+  function showValidationErrors(errors: SignUpValidationErrors) {
+    Object.entries(errors).forEach(([field, message]) => {
+      const errorElement = errorFields[field as keyof typeof errorFields];
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+      }
+    });
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const credentials = {
+      username: formData.get('username') as string,
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+    };
+
+    try {
+      await signUp(credentials);
+      window.location.href = '/login?signup=success';
+    } catch (error) {
+      if (error.code === 'validation_error') {
+        showValidationErrors(error.errors);
+      } else {
+        errorMessage?.classList.remove('hidden');
+        errorMessage.textContent = error.message;
+      }
+    }
+  });
+</script>

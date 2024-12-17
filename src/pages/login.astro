@@ -1,0 +1,109 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { getSession } from '../lib/auth';
+
+// Redirect if already logged in
+const session = await getSession();
+if (session) {
+  return Astro.redirect('/admin');
+}
+---
+
+<BlogLayout title="Login" description="Admin login page">
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+      <div>
+        <h2 class="text-center text-3xl font-bold">Admin Login</h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+          Or{' '}
+          <a href="/signup" class="font-medium text-blue-600 hover:text-blue-500">
+            create a new account
+          </a>
+        </p>
+      </div>
+
+      <!-- Show success message if redirected from signup -->
+      <div id="success-message" class="text-green-600 text-center hidden">
+        Account created successfully! Please sign in.
+      </div>
+
+      <form id="loginForm" class="mt-8 space-y-6">
+        <div class="rounded-md shadow-sm space-y-4">
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              required
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Enter username"
+            />
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Enter password"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="text-sm">
+            <a href="/signup" class="font-medium text-blue-600 hover:text-blue-500">
+              Need an account?
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Sign in
+          </button>
+        </div>
+
+        <div id="error-message" class="text-red-600 text-center hidden"></div>
+      </form>
+    </div>
+  </div>
+</BlogLayout>
+
+<script>
+  import { signIn } from '../lib/auth';
+
+  const form = document.getElementById('loginForm');
+  const errorMessage = document.getElementById('error-message');
+  const successMessage = document.getElementById('success-message');
+
+  // Check for signup success message
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('signup') === 'success') {
+    successMessage?.classList.remove('hidden');
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMessage?.classList.add('hidden');
+    successMessage?.classList.add('hidden');
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      await signIn(username, password);
+      window.location.href = '/admin';
+    } catch (error) {
+      errorMessage?.classList.remove('hidden');
+      errorMessage.textContent = 'Invalid username or password';
+    }
+  });
+</script>
